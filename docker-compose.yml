@@ -1,0 +1,40 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: mk_construction
+      MYSQL_USER: mk_user
+      MYSQL_PASSWORD: change_me
+      MYSQL_ROOT_PASSWORD: change_root
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  api:
+    build: .
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      APP_NAME: MK Construction API
+      ENVIRONMENT: development
+      DATABASE_URL: mysql+aiomysql://mk_user:change_me@mysql:3306/mk_construction
+      JWT_SECRET_KEY: change-this-to-a-long-random-secret
+      CORS_ORIGINS: http://localhost:5173
+      REDIS_URL: redis://redis:6379/0
+    ports:
+      - "8000:8000"
+
+volumes:
+  mysql_data:
