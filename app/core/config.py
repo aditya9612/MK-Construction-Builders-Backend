@@ -31,6 +31,13 @@ class Settings(BaseSettings):
 
     max_gst_percentage: float = 28
 
+    media_root: str = "media_storage"
+    media_url_prefix: str = "/media"
+    media_base_url: str | None = None
+    media_max_file_size_bytes: int = 5 * 1024 * 1024
+    media_max_batch_size: int = 20
+
+
     @field_validator("jwt_secret_key")
     @classmethod
     def secret_not_empty(cls, value: str) -> str:

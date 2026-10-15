@@ -19,3 +19,5 @@ htmlcov/
 *.swp
 .DS_Store
 docker-data/
+media_storage/
+backups/

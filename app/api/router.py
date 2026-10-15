@@ -6,9 +6,11 @@ from app.api.routes import (
     dashboard,
     doors_windows,
     electrical,
+    gallery,
     materials,
     painting,
     plumbing,
+    portfolio,
     projects,
     quotations,
     rates,
@@ -16,6 +18,7 @@ from app.api.routes import (
     settings,
     terms,
     tiles_granite,
+    upload,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -34,3 +37,9 @@ api_router.include_router(terms.router)
 api_router.include_router(settings.router)
 api_router.include_router(dashboard.router)
 api_router.include_router(reports.router)
+api_router.include_router(upload.router)
+for r in portfolio.routers:
+    api_router.include_router(r)
+for r in gallery.routers:
+    api_router.include_router(r)
+

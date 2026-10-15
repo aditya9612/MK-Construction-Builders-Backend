@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy import text
 
 from app.api.router import api_router
@@ -7,6 +8,7 @@ from app.core.config import settings
 from app.core.database import engine
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import register_logging
+from app.core.media_settings import get_media_settings
 
 app = FastAPI(
     title=settings.app_name,
@@ -32,6 +34,15 @@ app.add_middleware(
 )
 
 app.include_router(api_router)
+
+media_settings = get_media_settings()
+media_settings.media_root.mkdir(parents=True, exist_ok=True)
+app.mount(
+    media_settings.url_prefix,
+    StaticFiles(directory=str(media_settings.media_root)),
+    name="media",
+)
+
 
 
 @app.get("/health", tags=["Health"], summary="Liveness probe")

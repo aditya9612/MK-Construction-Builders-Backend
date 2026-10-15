@@ -33,8 +33,14 @@ services:
       JWT_SECRET_KEY: change-this-to-a-long-random-secret
       CORS_ORIGINS: http://localhost:5173
       REDIS_URL: redis://redis:6379/0
+      MEDIA_ROOT: /app/media_storage
+      MEDIA_URL_PREFIX: /media
+    volumes:
+      - media_data:/app/media_storage
     ports:
       - "8000:8000"
 
 volumes:
   mysql_data:
+  media_data:
+

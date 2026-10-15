@@ -27,7 +27,18 @@ from app.models.quotation_items import (
     QuotationTile,
     QuotationWindow,
 )
+from app.models.cms_enums import (
+    GalleryCategory,
+    MediaFolder,
+    PortfolioDisplayStatus,
+    PortfolioProjectType,
+    PublicationStatus,
+)
+from app.models.gallery_item import GalleryItem
+from app.models.portfolio_gallery import PortfolioProjectGallery
+from app.models.portfolio_project import PortfolioProject
 from app.models.term import Term
+from app.models.uploaded_media import UploadedMedia
 from app.models.user import Role, User
 
 __all__ = [
@@ -57,4 +68,14 @@ __all__ = [
     "Term",
     "Role",
     "User",
+    "UploadedMedia",
+    "PortfolioProject",
+    "PortfolioProjectGallery",
+    "GalleryItem",
+    "MediaFolder",
+    "PortfolioProjectType",
+    "PortfolioDisplayStatus",
+    "GalleryCategory",
+    "PublicationStatus",
 ]
+
