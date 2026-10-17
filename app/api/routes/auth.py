@@ -7,7 +7,17 @@ from app.models.user import User
 from app.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse, UserOut
 from app.schemas.common import SuccessResponse
 from app.services.auth_service import AuthService
+from app.api.deps import get_current_user, require_roles
+from app.models.enums import RoleName
 
+from app.schemas.auth import (
+    AdminCreateUserRequest,
+    LoginRequest,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+    UserOut,
+)
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
@@ -54,3 +64,21 @@ async def refresh(payload: RefreshRequest, db: AsyncSession = Depends(get_db)):
 async def me(user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)):
     data = await AuthService(db).me(user)
     return SuccessResponse(data=data)
+
+@router.post(
+    "/users",
+    response_model=SuccessResponse[UserOut],
+    status_code=status.HTTP_201_CREATED,
+    summary="Create user (Admin only)",
+    description="Allows an administrator to create a user with a specified role.",
+)
+async def create_user(
+    payload: AdminCreateUserRequest,
+    db: AsyncSession = Depends(get_db),
+    _: User = Depends(require_roles(RoleName.ADMIN)),
+):
+    user = await AuthService(db).create_user(payload)
+    return SuccessResponse(
+        message="User created successfully",
+        data=UserOut.model_validate(user),
+    )

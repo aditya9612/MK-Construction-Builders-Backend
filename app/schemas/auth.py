@@ -2,6 +2,8 @@ from pydantic import BaseModel, EmailStr, Field
 
 from app.schemas.common import ORMModel
 
+from app.models.enums import RoleName
+
 
 class LoginRequest(BaseModel):
     email: EmailStr
@@ -14,6 +16,12 @@ class RegisterRequest(BaseModel):
     phone: str | None = Field(default=None, max_length=20)
     password: str = Field(min_length=8, max_length=128)
 
+class AdminCreateUserRequest(BaseModel):
+    name: str = Field(min_length=2, max_length=150)
+    email: EmailStr
+    phone: str | None = Field(default=None, max_length=20)
+    password: str = Field(min_length=8, max_length=128)
+    role: RoleName
 
 class RefreshRequest(BaseModel):
     refresh_token: str
