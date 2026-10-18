@@ -31,7 +31,7 @@ services:
       ENVIRONMENT: development
       DATABASE_URL: mysql+aiomysql://mk_user:change_me@mysql:3306/mk_construction
       JWT_SECRET_KEY: change-this-to-a-long-random-secret
-      CORS_ORIGINS: http://localhost:5173
+      CORS_ORIGINS: http://localhost:5173,http://localhost:3000,https://darling-paletas-642ded.netlify.app,https://app.mkconstruction.site,https://mkconstruction.site,https://www.mkconstruction.site
       REDIS_URL: redis://redis:6379/0
       MEDIA_ROOT: /app/media_storage
       MEDIA_URL_PREFIX: /media

@@ -25,7 +25,14 @@ class Settings(BaseSettings):
     access_token_expire_minutes: int = 60
     refresh_token_expire_days: int = 7
 
-    cors_origins: str = "http://localhost:5173"
+    cors_origins: str = (
+        "http://localhost:5173,"
+        "http://localhost:3000,"
+        "https://darling-paletas-642ded.netlify.app,"
+        "https://app.mkconstruction.site,"
+        "https://mkconstruction.site,"
+        "https://www.mkconstruction.site"
+    )
 
     redis_url: str | None = None
 
@@ -47,7 +54,11 @@ class Settings(BaseSettings):
 
     @property
     def cors_origin_list(self) -> list[str]:
-        return [origin.strip() for origin in self.cors_origins.split(",") if origin.strip()]
+        return [
+            origin.strip().rstrip("/")
+            for origin in self.cors_origins.split(",")
+            if origin.strip()
+        ]
 
     @property
     def is_production(self) -> bool:
