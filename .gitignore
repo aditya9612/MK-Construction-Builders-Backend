@@ -21,3 +21,4 @@ htmlcov/
 docker-data/
 media_storage/
 backups/
+app/services/auth_service.py.save

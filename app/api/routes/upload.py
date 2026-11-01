@@ -3,7 +3,7 @@
 from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_masters
+from app.api.deps import require_admin
 from app.core.database import get_db
 from app.models.cms_enums import MediaFolder
 from app.models.user import User
@@ -24,7 +24,7 @@ async def upload_image(
     file: UploadFile = File(...),
     folder: MediaFolder = Form(default=MediaFolder.GALLERY),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await UploadService(db).upload_image(file, folder=folder)
     return SuccessResponse(message="Image uploaded successfully", data=data)
@@ -40,7 +40,7 @@ async def upload_images(
     files: list[UploadFile] = File(...),
     folder: MediaFolder = Form(default=MediaFolder.GALLERY),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await UploadService(db).upload_images(files, folder=folder)
     return SuccessResponse(message="Images uploaded successfully", data=data)
@@ -54,7 +54,7 @@ async def upload_images(
 async def delete_upload(
     file_id: int,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     """Delete by database media ID only — never by filesystem path."""
     await UploadService(db).delete(file_id)

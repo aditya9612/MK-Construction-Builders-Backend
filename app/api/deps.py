@@ -20,6 +20,13 @@ APPROVE_ROLES = {RoleName.ADMIN, RoleName.MANAGER}
 SETTINGS_ROLES = {RoleName.ADMIN}
 
 
+def _user_role(user: User) -> RoleName:
+    try:
+        return RoleName(str(user.role.name).upper())
+    except (ValueError, AttributeError) as exc:
+        raise ForbiddenError("You do not have permission to perform this action") from exc
+
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials | None = Depends(bearer_scheme),
     db: AsyncSession = Depends(get_db),
@@ -44,7 +51,8 @@ def require_roles(*roles: RoleName) -> Callable:
     allowed = set(roles)
 
     async def _checker(user: User = Depends(get_current_user)) -> User:
-        if user.role.name not in allowed and user.role.name != RoleName.ADMIN:
+        role = _user_role(user)
+        if role not in allowed and role != RoleName.ADMIN:
             raise ForbiddenError("You do not have permission to perform this action")
         return user
 
@@ -52,24 +60,30 @@ def require_roles(*roles: RoleName) -> Callable:
 
 
 async def require_write(user: User = Depends(get_current_user)) -> User:
-    if user.role.name not in WRITE_ROLES:
+    if _user_role(user) not in WRITE_ROLES:
         raise ForbiddenError("Read-only users cannot modify data")
     return user
 
 
 async def require_masters(user: User = Depends(get_current_user)) -> User:
-    if user.role.name not in MASTER_ROLES:
+    if _user_role(user) not in MASTER_ROLES:
         raise ForbiddenError("Master data can only be changed by managers")
     return user
 
 
 async def require_approve(user: User = Depends(get_current_user)) -> User:
-    if user.role.name not in APPROVE_ROLES:
+    if _user_role(user) not in APPROVE_ROLES:
         raise ForbiddenError("Only managers can change quotation status")
     return user
 
 
+async def require_admin(user: User = Depends(get_current_user)) -> User:
+    if _user_role(user) not in SETTINGS_ROLES:
+        raise ForbiddenError("Only administrators can perform this action")
+    return user
+
+
 async def require_settings(user: User = Depends(get_current_user)) -> User:
-    if user.role.name not in SETTINGS_ROLES:
+    if _user_role(user) not in SETTINGS_ROLES:
         raise ForbiddenError("Only administrators can change company settings")
     return user

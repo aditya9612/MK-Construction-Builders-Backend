@@ -62,13 +62,26 @@ def test_public_portfolio_and_gallery_have_no_auth_dependency():
     for route in public_routes:
         names = _dep_names(route)
         assert "require_masters" not in names
+        assert "require_admin" not in names
         assert "get_current_user" not in names
         assert "require_write" not in names
 
 
+def test_upload_routes_require_admin():
+    checked = 0
+    for route in upload_routes.router.routes:
+        if not isinstance(route, APIRoute):
+            continue
+        if route.methods and route.methods.intersection({"POST", "PUT", "DELETE"}):
+            names = _dep_names(route)
+            assert "require_admin" in names, f"{route.path} missing require_admin"
+            assert "require_masters" not in names, f"{route.path} must not allow managers/viewers"
+            checked += 1
+    assert checked >= 3
+
+
 def test_admin_routes_require_masters():
     admin_route_lists = [
-        upload_routes.router.routes,
         portfolio_routes.admin_router.routes,
         gallery_routes.admin_router.routes,
     ]
