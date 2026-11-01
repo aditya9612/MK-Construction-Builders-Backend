@@ -11,7 +11,13 @@ from app.core.security import (
 )
 from app.models.enums import RoleName
 from app.models.user import Role, User
-from app.schemas.auth import LoginRequest, RegisterRequest, TokenResponse, UserOut
+from app.schemas.auth import (
+    AdminCreateUserRequest,
+    LoginRequest,
+    RegisterRequest,
+    TokenResponse,
+    UserOut,
+)
 
 
 class AuthService:
@@ -51,7 +57,31 @@ class AuthService:
         await self.session.commit()
         await self.session.refresh(user, attribute_names=["role"])
         return user
+           
+           
+           
+           
+    async def create_user(self, payload: AdminCreateUserRequest) -> User:
+        existing = await self.get_user_by_email(str(payload.email).lower())
+        if existing:
+            raise ConflictError("Email is already registered")
 
+        role = await self._role_by_name(payload.role.value)
+
+        user = User(
+            name=payload.name,
+            email=str(payload.email).lower(),
+            phone=payload.phone,
+            password_hash=hash_password(payload.password),
+            role_id=role.id,
+            is_active=True,
+        )
+
+        self.session.add(user)
+        await self.session.commit()
+        await self.session.refresh(user, attribute_names=["role"])
+        return user
+    
     async def login(self, payload: LoginRequest) -> TokenResponse:
         user = await self.get_user_by_email(str(payload.email).lower())
         if not user or not verify_password(payload.password, user.password_hash):
