@@ -66,3 +66,8 @@ Calculation tests cover the reference example:
 - 2000 × 900 = ₹18,00,000
 - 2000 × 700 = ₹14,00,000
 - 5% discount and 18% GST → grand total ₹35,87,200
+ 
+ 
+ ## source venv/bin/activate
+ ## uvicorn app.main:app --reload
+ 
