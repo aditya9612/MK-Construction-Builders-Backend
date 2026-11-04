@@ -1,12 +1,9 @@
-"""CMS portfolio routes. Public GETs are unauthenticated and published-only.
-
-Not registered in ``app.api.router`` until integration approval.
-"""
+"""CMS portfolio routes. Public GETs are unauthenticated and published-only."""
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_masters
+from app.api.deps import require_admin
 from app.core.database import get_db
 from app.models.cms_enums import (
     PortfolioDisplayStatus,
@@ -80,7 +77,7 @@ async def list_admin_portfolio_projects(
     sort_by: str = Query("display_order"),
     sort_order: str = Query("asc"),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await PortfolioService(db).list_admin(
         page=page,
@@ -104,7 +101,7 @@ async def list_admin_portfolio_projects(
 async def get_admin_portfolio_project(
     project_id: int,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     return SuccessResponse(data=await PortfolioService(db).get_admin(project_id))
 
@@ -118,7 +115,7 @@ async def get_admin_portfolio_project(
 async def create_portfolio_project(
     payload: PortfolioProjectCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await PortfolioService(db).create(payload)
     return SuccessResponse(message="Portfolio project created successfully", data=data)
@@ -133,7 +130,7 @@ async def update_portfolio_project(
     project_id: int,
     payload: PortfolioProjectUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await PortfolioService(db).update(project_id, payload)
     return SuccessResponse(message="Portfolio project updated successfully", data=data)
@@ -147,7 +144,7 @@ async def update_portfolio_project(
 async def delete_portfolio_project(
     project_id: int,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     await PortfolioService(db).delete(project_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
@@ -162,7 +159,7 @@ async def attach_portfolio_gallery(
     project_id: int,
     payload: PortfolioGalleryAttach,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await PortfolioService(db).attach_gallery(project_id, payload)
     return SuccessResponse(message="Gallery images attached successfully", data=data)
@@ -177,7 +174,7 @@ async def detach_portfolio_gallery(
     project_id: int,
     payload: PortfolioGalleryDetach,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await PortfolioService(db).detach_gallery(project_id, payload)
     return SuccessResponse(message="Gallery images detached successfully", data=data)
@@ -192,7 +189,7 @@ async def detach_portfolio_gallery_item(
     project_id: int,
     media_id: int,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await PortfolioService(db).detach_gallery_media(project_id, media_id)
     return SuccessResponse(message="Gallery image detached successfully", data=data)
@@ -207,7 +204,7 @@ async def detach_portfolio_gallery_post(
     project_id: int,
     payload: PortfolioGalleryDetach,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await PortfolioService(db).detach_gallery(project_id, payload)
     return SuccessResponse(message="Gallery images detached successfully", data=data)

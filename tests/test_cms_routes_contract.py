@@ -1,8 +1,5 @@
 """Route contract tests: paths and auth wiring without DB mutations.
 
-Routers are mounted on an isolated FastAPI app (not production ``app.main``)
-because CMS routers are not registered until integration approval.
-
 FastAPI >=0.143 may store included routers lazily; OpenAPI / router.routes
 are used instead of flattened ``app.routes`` APIRoute objects.
 """
@@ -80,7 +77,8 @@ def test_upload_routes_require_admin():
     assert checked >= 3
 
 
-def test_admin_routes_require_masters():
+def test_admin_routes_require_admin():
+    """Same Dashboard admin token as upload: require_admin on all CMS admin routes."""
     admin_route_lists = [
         portfolio_routes.admin_router.routes,
         gallery_routes.admin_router.routes,
@@ -92,7 +90,8 @@ def test_admin_routes_require_masters():
                 continue
             if route.methods and route.methods.intersection({"POST", "PUT", "DELETE", "GET"}):
                 names = _dep_names(route)
-                assert "require_masters" in names, f"{route.path} missing require_masters"
+                assert "require_admin" in names, f"{route.path} missing require_admin"
+                assert "require_masters" not in names, f"{route.path} must match upload auth"
                 checked += 1
     assert checked >= 8
 
@@ -102,7 +101,35 @@ def test_production_app_exposes_cms_routes():
     from app.main import app
 
     paths = set(app.openapi()["paths"].keys())
-    assert "/api/v1/portfolio/projects" in paths
-    assert "/api/v1/gallery" in paths
-    assert "/api/v1/admin/upload/image" in paths
+    expected = {
+        "/api/v1/portfolio/projects",
+        "/api/v1/portfolio/projects/{slug}",
+        "/api/v1/gallery",
+        "/api/v1/admin/upload/image",
+        "/api/v1/admin/upload/images",
+        "/api/v1/admin/gallery",
+        "/api/v1/admin/gallery/{item_id}",
+        "/api/v1/admin/portfolio/projects",
+        "/api/v1/admin/portfolio/projects/{project_id}",
+        "/api/v1/admin/portfolio/projects/{project_id}/gallery",
+        "/api/v1/admin/portfolio/projects/{project_id}/gallery/{media_id}",
+    }
+    missing = expected - paths
+    assert not missing, f"Missing CMS paths on production app: {missing}"
+
+
+def test_media_static_includes_cors_headers():
+    from fastapi.testclient import TestClient
+
+    from app.main import app
+
+    client = TestClient(app)
+    response = client.get(
+        "/media/gallery/missing-for-cors-check.webp",
+        headers={"Origin": "https://mkconstruction.site"},
+    )
+    assert response.status_code == 404
+    allow_origin = response.headers.get("access-control-allow-origin")
+    assert allow_origin in {"*", "https://mkconstruction.site"}
+    assert response.headers.get("cross-origin-resource-policy") == "cross-origin"
 

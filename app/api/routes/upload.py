@@ -1,6 +1,6 @@
-"""CMS media upload routes (admin). Not registered until integration approval."""
+"""CMS media upload routes (Dashboard admin)."""
 
-from fastapi import APIRouter, Depends, File, Form, Response, UploadFile, status
+from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.api.deps import require_admin
@@ -22,11 +22,14 @@ router = APIRouter(prefix="/admin/upload", tags=["CMS Upload"])
 )
 async def upload_image(
     file: UploadFile = File(...),
-    folder: MediaFolder = Form(default=MediaFolder.GALLERY),
+    folder: MediaFolder | None = Form(default=None),
+    folder_query: MediaFolder | None = Query(default=None, alias="folder"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    data = await UploadService(db).upload_image(file, folder=folder)
+    data = await UploadService(db).upload_image(
+        file, folder=folder or folder_query or MediaFolder.GALLERY
+    )
     return SuccessResponse(message="Image uploaded successfully", data=data)
 
 
@@ -38,11 +41,14 @@ async def upload_image(
 )
 async def upload_images(
     files: list[UploadFile] = File(...),
-    folder: MediaFolder = Form(default=MediaFolder.GALLERY),
+    folder: MediaFolder | None = Form(default=None),
+    folder_query: MediaFolder | None = Query(default=None, alias="folder"),
     db: AsyncSession = Depends(get_db),
     _: User = Depends(require_admin),
 ):
-    data = await UploadService(db).upload_images(files, folder=folder)
+    data = await UploadService(db).upload_images(
+        files, folder=folder or folder_query or MediaFolder.GALLERY
+    )
     return SuccessResponse(message="Images uploaded successfully", data=data)
 
 

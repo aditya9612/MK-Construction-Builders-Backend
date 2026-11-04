@@ -199,7 +199,6 @@ def test_m2_gallery_detach_endpoints_exist_and_require_auth():
     assert "/api/v1/admin/portfolio/projects/{project_id}/gallery/detach" in paths
     assert "/api/v1/admin/portfolio/projects/{project_id}/gallery" in paths
 
-    # Verify require_masters dependency on the new routes
     for route in portfolio_routes.admin_router.routes:
         if isinstance(route, APIRoute) and (
             "{media_id}" in route.path or "detach" in route.path
@@ -208,7 +207,7 @@ def test_m2_gallery_detach_endpoints_exist_and_require_auth():
                 getattr(dep.call, "__name__", "")
                 for dep in route.dependant.dependencies
             }
-            assert "require_masters" in dep_names
+            assert "require_admin" in dep_names
 
 
 # --- M-3: Query Parameter Enum Validation ---

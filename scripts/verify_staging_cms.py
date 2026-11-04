@@ -66,7 +66,7 @@ def run_staging_verification():
         files = {"file": ("test_staging.png", io.BytesIO(png_data), "image/png")}
         r_upload = client.post(
             "/api/v1/admin/upload/image",
-            params={"folder": "portfolio"},
+            data={"folder": "projects"},
             files=files,
             headers=headers,
         )
@@ -86,7 +86,7 @@ def run_staging_verification():
         files2 = {"file": ("test_staging_2.png", io.BytesIO(png_data), "image/png")}
         r_upload2 = client.post(
             "/api/v1/admin/upload/image",
-            params={"folder": "gallery"},
+            data={"folder": "gallery"},
             files=files2,
             headers=headers,
         )

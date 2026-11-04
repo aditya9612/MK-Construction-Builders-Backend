@@ -68,6 +68,21 @@ class Settings(BaseSettings):
     def allow_unrestricted_cors(self) -> bool:
         return not self.is_production and self.cors_origins.strip() == "*"
 
+    @property
+    def effective_cors_origins(self) -> list[str]:
+        """Origins for CORSMiddleware. Never use '*' with credentials in production."""
+        origins = [origin for origin in self.cors_origin_list if origin != "*"]
+        if origins:
+            return origins
+        if self.is_production:
+            return [
+                "https://app.mkconstruction.site",
+                "https://mkconstruction.site",
+                "https://www.mkconstruction.site",
+                "https://darling-paletas-642ded.netlify.app",
+            ]
+        return ["http://localhost:5173", "http://localhost:3000"]
+
 
 @lru_cache
 def get_settings() -> Settings:

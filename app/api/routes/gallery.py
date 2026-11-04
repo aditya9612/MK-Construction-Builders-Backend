@@ -1,12 +1,9 @@
-"""CMS gallery routes. Public GETs are unauthenticated and published-only.
-
-Not registered in ``app.api.router`` until integration approval.
-"""
+"""CMS gallery routes. Public GETs are unauthenticated and published-only."""
 
 from fastapi import APIRouter, Depends, Query, Response, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.api.deps import require_masters
+from app.api.deps import require_admin
 from app.core.database import get_db
 from app.models.cms_enums import GalleryCategory, PublicationStatus
 from app.models.user import User
@@ -57,7 +54,7 @@ async def list_admin_gallery(
     sort_by: str = Query("display_order"),
     sort_order: str = Query("asc"),
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await GalleryService(db).list_admin(
         page=page,
@@ -80,7 +77,7 @@ async def list_admin_gallery(
 async def get_admin_gallery_item(
     item_id: int,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     return SuccessResponse(data=await GalleryService(db).get_admin(item_id))
 
@@ -94,7 +91,7 @@ async def get_admin_gallery_item(
 async def create_gallery_item(
     payload: GalleryItemCreate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await GalleryService(db).create(payload)
     return SuccessResponse(message="Gallery item created successfully", data=data)
@@ -109,7 +106,7 @@ async def update_gallery_item(
     item_id: int,
     payload: GalleryItemUpdate,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     data = await GalleryService(db).update(item_id, payload)
     return SuccessResponse(message="Gallery item updated successfully", data=data)
@@ -123,7 +120,7 @@ async def update_gallery_item(
 async def delete_gallery_item(
     item_id: int,
     db: AsyncSession = Depends(get_db),
-    _: User = Depends(require_masters),
+    _: User = Depends(require_admin),
 ):
     await GalleryService(db).delete(item_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -30,6 +30,7 @@ def test_rbac_sets():
     assert RoleName.ESTIMATOR not in MASTER_ROLES
     assert RoleName.ESTIMATOR not in APPROVE_ROLES
     assert RoleName.MANAGER in APPROVE_ROLES
+    assert RoleName.ADMIN in MASTER_ROLES
     assert RoleName.ADMIN in SETTINGS_ROLES
     assert RoleName.VIEWER not in SETTINGS_ROLES
     assert RoleName.MANAGER not in SETTINGS_ROLES
