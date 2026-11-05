@@ -89,7 +89,7 @@ class UploadService:
         refs = await self.repo.count_references(file_id)
         if refs > 0:
             raise ConflictError(
-                "Cannot delete media that is referenced by portfolio or gallery content"
+                "Cannot delete media that is referenced by portfolio, gallery, or services content"
             )
 
         storage_key = media.storage_key

@@ -7,6 +7,7 @@ from app.models.gallery_item import GalleryItem
 from app.models.portfolio_gallery import PortfolioProjectGallery
 from app.models.portfolio_project import PortfolioProject
 from app.models.uploaded_media import UploadedMedia
+from app.models.website_service import WebsiteService
 
 
 ALLOWED_MEDIA_SORT_FIELDS = frozenset(
@@ -58,7 +59,19 @@ class MediaRepository:
                 .where(GalleryItem.media_id == media_id)
             )
         ).scalar_one()
-        return int(main_count) + int(gallery_link_count) + int(gallery_item_count)
+        service_count = (
+            await self.session.execute(
+                select(func.count())
+                .select_from(WebsiteService)
+                .where(WebsiteService.image_id == media_id)
+            )
+        ).scalar_one()
+        return (
+            int(main_count)
+            + int(gallery_link_count)
+            + int(gallery_item_count)
+            + int(service_count)
+        )
 
     def list_query(
         self,

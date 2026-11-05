@@ -5,9 +5,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from sqlalchemy import text
 
+from fastapi.openapi.docs import (
+    get_swagger_ui_html,
+    get_swagger_ui_oauth2_redirect_html,
+)
+
 from app.api.router import api_router
 from app.core.config import settings
-from app.core.database import engine
+from app.core.database import AsyncSessionLocal, engine
 from app.core.exceptions import register_exception_handlers
 from app.core.logging import register_logging
 from app.core.media_settings import get_media_settings
@@ -33,9 +38,35 @@ app = FastAPI(
     title=settings.app_name,
     version="1.0.0",
     description="MK Construction & Builders quotation and estimation API",
-    docs_url="/docs",
+    openapi_url="/openapi.json",
+    docs_url=None,
     redoc_url="/redoc",
 )
+
+app.state.db_factory = AsyncSessionLocal
+
+
+@app.get("/docs", include_in_schema=False)
+async def custom_swagger_ui_html():
+    return get_swagger_ui_html(
+        openapi_url=app.openapi_url,
+        title=f"{app.title} - Swagger UI",
+        oauth2_redirect_url="/docs/oauth2-redirect",
+        swagger_js_url=(
+            "https://cdn.jsdelivr.net/npm/"
+            "swagger-ui-dist@5.32.15/swagger-ui-bundle.js"
+        ),
+        swagger_css_url=(
+            "https://cdn.jsdelivr.net/npm/"
+            "swagger-ui-dist@5.32.15/swagger-ui.css"
+        ),
+    )
+
+
+@app.get("/docs/oauth2-redirect", include_in_schema=False)
+async def swagger_ui_redirect():
+    return get_swagger_ui_oauth2_redirect_html()
+
 
 register_logging(app)
 register_exception_handlers(app)
@@ -71,3 +102,4 @@ async def health_db():
     async with engine.connect() as connection:
         await connection.execute(text("SELECT 1"))
     return {"status": "ok", "database": "connected"}
+

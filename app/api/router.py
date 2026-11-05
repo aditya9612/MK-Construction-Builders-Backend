@@ -19,6 +19,7 @@ from app.api.routes import (
     terms,
     tiles_granite,
     upload,
+    website_services,
 )
 
 api_router = APIRouter(prefix="/api/v1")
@@ -41,5 +42,7 @@ api_router.include_router(upload.router)
 for r in portfolio.routers:
     api_router.include_router(r)
 for r in gallery.routers:
+    api_router.include_router(r)
+for r in website_services.routers:
     api_router.include_router(r)
 

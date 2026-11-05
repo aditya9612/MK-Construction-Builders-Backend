@@ -11,6 +11,7 @@ from app.schemas.portfolio import (
     PortfolioProjectUpdate,
 )
 from app.schemas.uploaded_media import MediaRefOut, assert_allowed_image_extension
+from app.schemas.website_service import WebsiteServiceCreate, WebsiteServiceUpdate
 
 
 def test_portfolio_slug_normalized():
@@ -71,6 +72,29 @@ def test_gallery_item_to_out_src_fields():
     assert out.src == "/media/gallery/a.webp"
     assert out.src_full == "https://cdn.example.test/media/gallery/a.webp"
     assert isinstance(out.media, MediaRefOut)
+
+
+def test_service_slug_normalized_and_draft_default():
+    payload = WebsiteServiceCreate(
+        title=" Residential Construction ",
+        slug="Residential",
+        image_id=12,
+        features=[" Planning support ", "Quality-focused build"],
+    )
+    assert payload.title == "Residential Construction"
+    assert payload.slug == "residential"
+    assert payload.features == ["Planning support", "Quality-focused build"]
+    assert payload.publication_status == PublicationStatus.DRAFT
+
+
+def test_service_slug_rejects_spaces():
+    with pytest.raises(ValidationError):
+        WebsiteServiceCreate(title="X", slug="bad slug", image_id=1)
+
+
+def test_service_update_may_replace_image():
+    payload = WebsiteServiceUpdate(image_id=99)
+    assert payload.image_id == 99
 
 
 def test_svg_extension_helper_rejected():

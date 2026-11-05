@@ -43,11 +43,16 @@ class UploadedMedia(TimestampMixin, Base):
     portfolio_gallery_links: Mapped[list["PortfolioProjectGallery"]] = relationship(
         back_populates="media",
     )
+    website_services: Mapped[list["WebsiteService"]] = relationship(
+        back_populates="image",
+        foreign_keys="WebsiteService.image_id",
+    )
 
 
 # Ensure related CMS models are registered in SQLAlchemy mapper registry
 from app.models.gallery_item import GalleryItem  # noqa: F401,E402
 from app.models.portfolio_gallery import PortfolioProjectGallery  # noqa: F401,E402
 from app.models.portfolio_project import PortfolioProject  # noqa: F401,E402
+from app.models.website_service import WebsiteService  # noqa: F401,E402
 
 

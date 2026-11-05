@@ -24,6 +24,7 @@ from app.models.gallery_item import GalleryItem
 from app.models.portfolio_gallery import PortfolioProjectGallery
 from app.models.portfolio_project import PortfolioProject
 from app.models.uploaded_media import UploadedMedia
+from app.models.website_service import WebsiteService
 from app.repositories.gallery_repository import (
     ALLOWED_GALLERY_SORT_FIELDS,
     GalleryRepository,
@@ -65,6 +66,7 @@ def test_c1_mapper_configuration_succeeds_in_isolation():
     assert UploadedMedia.__mapper__ is not None
     assert PortfolioProjectGallery.__mapper__ is not None
     assert GalleryItem.__mapper__ is not None
+    assert WebsiteService.__mapper__ is not None
 
 
 # --- H-1: Commit Rollback & Storage Cleanup ---
@@ -183,6 +185,12 @@ async def test_h4_attach_gallery_handles_flush_integrity_error():
 # --- M-1: Foreign Key ondelete RESTRICT on main_image_id ---
 def test_m1_main_image_id_fk_ondelete_is_restrict():
     col = PortfolioProject.__table__.c.main_image_id
+    fk = list(col.foreign_keys)[0]
+    assert fk.ondelete == "RESTRICT"
+
+
+def test_service_image_id_fk_ondelete_is_restrict():
+    col = WebsiteService.__table__.c.image_id
     fk = list(col.foreign_keys)[0]
     assert fk.ondelete == "RESTRICT"
 

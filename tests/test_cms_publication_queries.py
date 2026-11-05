@@ -3,6 +3,7 @@
 from app.models.cms_enums import PublicationStatus
 from app.repositories.gallery_repository import GalleryRepository
 from app.repositories.portfolio_repository import PortfolioRepository
+from app.repositories.website_service_repository import WebsiteServiceRepository
 
 
 class _DummySession:
@@ -32,11 +33,22 @@ def test_gallery_public_query_filters_published():
     assert "PUBLISHED" in sql
 
 
+def test_services_public_query_filters_published():
+    repo = WebsiteServiceRepository(_DummySession())  # type: ignore[arg-type]
+    stmt = repo.list_query(published_only=True)
+    sql = str(stmt.compile(compile_kwargs={"literal_binds": True}))
+    assert "PUBLISHED" in sql
+    assert "website_services" in sql.lower() or "WebsiteService" in sql
+
+
 def test_admin_queries_can_omit_published_filter():
     portfolio = PortfolioRepository(_DummySession())  # type: ignore[arg-type]
     gallery = GalleryRepository(_DummySession())  # type: ignore[arg-type]
+    services = WebsiteServiceRepository(_DummySession())  # type: ignore[arg-type]
     p_sql = str(portfolio.list_query(published_only=False).compile())
     g_sql = str(gallery.list_query(published_only=False).compile())
+    s_sql = str(services.list_query(published_only=False).compile())
     # Without published_only, no forced PUBLISHED bind is required
     assert "portfolio" in p_sql.lower() or "PortfolioProject" in p_sql
     assert "gallery" in g_sql.lower() or "GalleryItem" in g_sql
+    assert "website_services" in s_sql.lower() or "WebsiteService" in s_sql
