@@ -41,6 +41,7 @@ from app.models.term import Term
 from app.models.uploaded_media import UploadedMedia
 from app.models.user import Role, User
 from app.models.website_service import WebsiteService
+from app.models.customer_feedback import CustomerFeedback, ReviewSource
 
 __all__ = [
     "AuditLog",
@@ -79,5 +80,7 @@ __all__ = [
     "PortfolioDisplayStatus",
     "GalleryCategory",
     "PublicationStatus",
+    "CustomerFeedback",
+    "ReviewSource",
 ]
 

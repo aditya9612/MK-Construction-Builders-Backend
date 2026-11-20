@@ -2,6 +2,7 @@ from fastapi import APIRouter
 
 from app.api.routes import (
     auth,
+    customer_feedback,
     customers,
     dashboard,
     doors_windows,
@@ -24,6 +25,7 @@ from app.api.routes import (
 
 api_router = APIRouter(prefix="/api/v1")
 api_router.include_router(auth.router)
+api_router.include_router(customer_feedback.router)
 api_router.include_router(customers.router)
 api_router.include_router(projects.router)
 api_router.include_router(quotations.router)
