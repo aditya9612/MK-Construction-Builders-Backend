@@ -22,6 +22,8 @@ from fastapi import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from pydantic import ValidationError
+
 from app.api.deps import require_admin
 from app.core.database import get_db
 from app.core.exceptions import ValidationFailedError
@@ -35,6 +37,7 @@ from app.schemas.customer_feedback import (
     CustomerFeedbackPublicStatisticsResponse,
     CustomerFeedbackResponse,
     CustomerFeedbackUpdate,
+    CustomerReviewPublicSubmit,
     FeedbackDisplayOrderUpdate,
     FeedbackFeaturedUpdate,
     FeedbackPublishUpdate,
@@ -103,6 +106,96 @@ async def get_public_feedback(
 ):
     data = await CustomerFeedbackService(db).get_public(feedback_id)
     return SuccessResponse(data=data)
+
+
+@router.post(
+    "/public/submit",
+    response_model=SuccessResponse[CustomerFeedbackPublicResponse],
+    status_code=status.HTTP_201_CREATED,
+    summary="Submit a public customer review (immediate publication)",
+)
+async def submit_public_review(
+    request: Request,
+    db: AsyncSession = Depends(get_db),
+):
+    service = CustomerFeedbackService(db)
+    content_type = request.headers.get("content-type", "")
+
+    # Extract client IP
+    client_ip = request.headers.get("x-forwarded-for")
+    if client_ip:
+        client_ip = client_ip.split(",")[0].strip()
+    if not client_ip:
+        client_ip = request.headers.get("x-real-ip")
+    if not client_ip and request.client:
+        client_ip = request.client.host
+    if not client_ip:
+        client_ip = "127.0.0.1"
+
+    if "multipart/form-data" in content_type:
+        form = await request.form()
+        uploaded_file = form.get("customer_photo") or form.get("photo") or form.get("file")
+        photo_file: UploadFile | None = None
+        if uploaded_file and hasattr(uploaded_file, "filename") and uploaded_file.filename:
+            photo_file = uploaded_file
+
+        raw_name = form.get("customer_name")
+        raw_location = form.get("customer_location")
+        raw_rating = form.get("rating")
+        raw_message = form.get("review_message")
+        raw_title = form.get("review_title")
+        raw_honeypot = form.get("honeypot") or form.get("website_hp")
+
+        try:
+            submit_payload = CustomerReviewPublicSubmit(
+                customer_name=raw_name,  # type: ignore[arg-type]
+                customer_location=raw_location,  # type: ignore[arg-type]
+                rating=raw_rating,  # type: ignore[arg-type]
+                review_message=raw_message,  # type: ignore[arg-type]
+                review_title=str(raw_title) if raw_title is not None else None,
+                honeypot=str(raw_honeypot) if raw_honeypot is not None else None,
+            )
+        except ValidationError as exc:
+            errors = []
+            for err in exc.errors():
+                loc = ".".join(str(part) for part in err.get("loc", []) if part != "body")
+                errors.append({"field": loc, "message": err.get("msg")})
+            raise ValidationFailedError(message="Validation failed", errors=errors) from exc
+
+        result = await service.submit_public_review(
+            payload=submit_payload,
+            photo_file=photo_file,
+            client_ip=client_ip,
+        )
+        return SuccessResponse(
+            message="Thank you! Your review has been submitted and published successfully.",
+            data=result,
+        )
+
+    # JSON submission
+    try:
+        body = await request.json()
+    except Exception as exc:
+        raise ValidationFailedError("Valid JSON request body is required") from exc
+
+    try:
+        submit_payload = CustomerReviewPublicSubmit.model_validate(body)
+    except ValidationError as exc:
+        errors = []
+        for err in exc.errors():
+            loc = ".".join(str(part) for part in err.get("loc", []) if part != "body")
+            errors.append({"field": loc, "message": err.get("msg")})
+        raise ValidationFailedError(message="Validation failed", errors=errors) from exc
+
+    result = await service.submit_public_review(
+        payload=submit_payload,
+        photo_file=None,
+        client_ip=client_ip,
+    )
+    return SuccessResponse(
+        message="Thank you! Your review has been submitted and published successfully.",
+        data=result,
+    )
 
 
 # ==============================================================================

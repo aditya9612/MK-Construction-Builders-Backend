@@ -34,6 +34,31 @@ class CustomerFeedbackRepository:
     async def delete(self, item: CustomerFeedback) -> None:
         await self.session.delete(item)
 
+    async def find_recent_duplicate(
+        self,
+        *,
+        customer_name: str,
+        customer_location: str,
+        review_message: str,
+        within_seconds: int = 120,
+    ) -> CustomerFeedback | None:
+        """Find a review with identical name, location, and message created within recent seconds."""
+        from datetime import datetime, timedelta, timezone
+
+        threshold = datetime.now(timezone.utc) - timedelta(seconds=within_seconds)
+        stmt = (
+            select(CustomerFeedback)
+            .where(
+                CustomerFeedback.customer_name == customer_name.strip(),
+                CustomerFeedback.customer_location == customer_location.strip(),
+                CustomerFeedback.review_message == review_message.strip(),
+                CustomerFeedback.created_at >= threshold,
+            )
+            .limit(1)
+        )
+        res = await self.session.execute(stmt)
+        return res.scalar_one_or_none()
+
     def list_query(
         self,
         *,

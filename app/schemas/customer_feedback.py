@@ -230,6 +230,129 @@ class CustomerFeedbackAdminStatisticsResponse(BaseModel):
     rating_distribution: dict[str, int] = Field(default_factory=dict)
 
 
+class CustomerReviewPublicSubmit(BaseModel):
+    """Payload for public website review submissions.
+
+    Server controls is_published (True), review_source ('website'),
+    is_featured (False), and display_order (0). Extra fields are ignored.
+    """
+
+    model_config = ConfigDict(extra="ignore")
+
+    customer_name: str = Field(..., min_length=1, max_length=150, description="Customer name")
+    customer_location: str = Field(
+        ..., min_length=1, max_length=150, description="Customer city/location"
+    )
+    rating: int = Field(..., ge=1, le=5, description="Rating between 1 and 5")
+    review_message: str = Field(
+        ..., min_length=1, description="Customer feedback / review message"
+    )
+    review_title: str | None = Field(default=None, max_length=200, description="Review heading")
+    customer_photo: str | None = Field(
+        default=None, max_length=500, description="Customer profile photo path"
+    )
+    honeypot: str | None = Field(
+        default=None, max_length=100, description="Anti-spam honeypot (leave empty)"
+    )
+
+    @field_validator("customer_name")
+    @classmethod
+    def validate_name(cls, value: str) -> str:
+        res = _validate_clean_string(value, "Customer name")
+        assert res is not None
+        if len(res) > 150:
+            raise ValueError("Customer name must not exceed 150 characters")
+        if re.search(r"<[^>]*>", res):
+            raise ValueError("Customer name contains invalid characters or HTML")
+        if re.search(r"https?://", res, re.IGNORECASE):
+            raise ValueError("Customer name must not contain URLs")
+        return res
+
+    @field_validator("customer_location")
+    @classmethod
+    def validate_location(cls, value: str) -> str:
+        res = _validate_clean_string(value, "Customer location")
+        assert res is not None
+        if len(res) > 150:
+            raise ValueError("Customer location must not exceed 150 characters")
+        if re.search(r"<[^>]*>", res):
+            raise ValueError("Customer location contains invalid characters or HTML")
+        if re.search(r"https?://", res, re.IGNORECASE):
+            raise ValueError("Customer location must not contain URLs")
+        return res
+
+    @field_validator("rating", mode="before")
+    @classmethod
+    def validate_rating(cls, value: Any) -> int:
+        if isinstance(value, bool):
+            raise ValueError("Rating must be an integer between 1 and 5")
+        try:
+            if isinstance(value, float):
+                if not value.is_integer():
+                    raise ValueError("Rating must be an integer between 1 and 5")
+                value = int(value)
+            elif isinstance(value, str):
+                cleaned_str = value.strip()
+                if not cleaned_str or "." in cleaned_str:
+                    raise ValueError("Rating must be an integer between 1 and 5")
+                value = int(cleaned_str)
+            elif not isinstance(value, int):
+                raise ValueError("Rating must be an integer between 1 and 5")
+        except (ValueError, TypeError):
+            raise ValueError("Rating must be an integer between 1 and 5")
+
+        if value < 1 or value > 5:
+            raise ValueError("Rating must be an integer between 1 and 5")
+        return value
+
+    @field_validator("review_message")
+    @classmethod
+    def validate_message(cls, value: str) -> str:
+        res = _validate_clean_string(value, "Review message")
+        assert res is not None
+        if re.search(r"<script[^>]*>", res, re.IGNORECASE):
+            raise ValueError("Review message contains invalid script tags")
+        links = re.findall(r"https?://", res, re.IGNORECASE)
+        if len(links) > 2:
+            raise ValueError("Review message contains too many links")
+        return res
+
+    @field_validator("review_title", mode="before")
+    @classmethod
+    def validate_title(cls, value: Any) -> str | None:
+        if value is None:
+            return None
+        if isinstance(value, str):
+            cleaned = value.strip()
+            if not cleaned:
+                return None
+            if len(cleaned) > 200:
+                raise ValueError("Review title must not exceed 200 characters")
+            if re.search(r"<[^>]*>", cleaned):
+                raise ValueError("Review title contains invalid characters or HTML")
+            return cleaned
+        return value
+
+    @field_validator("customer_photo")
+    @classmethod
+    def validate_photo_path(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        cleaned = value.strip()
+        if not cleaned:
+            return None
+        if "\\" in cleaned or ".." in cleaned or cleaned.startswith(("file:", "C:", "c:")):
+            raise ValueError("Invalid customer photo path")
+        return cleaned
+
+    @field_validator("honeypot")
+    @classmethod
+    def validate_honeypot(cls, value: str | None) -> str | None:
+        if value and value.strip():
+            raise ValueError("Spam detected: honeypot field must be empty")
+        return None
+
+
 class FeedbackPublishUpdate(BaseModel):
     is_published: bool = Field(..., description="Publication status")
 

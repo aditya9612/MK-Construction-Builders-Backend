@@ -46,6 +46,11 @@ class ValidationFailedError(AppError):
     message = "Validation failed"
 
 
+class RateLimitExceededError(AppError):
+    status_code = status.HTTP_429_TOO_MANY_REQUESTS
+    message = "Rate limit exceeded. Please try again later."
+
+
 class DatabaseError(AppError):
     status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
     message = "A database error occurred"
