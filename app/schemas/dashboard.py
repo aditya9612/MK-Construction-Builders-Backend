@@ -20,6 +20,7 @@ class CustomerValue(BaseModel):
 
 
 class DashboardSummary(BaseModel):
+    unread_enquiries: int = 0
     total_quotations: int
     draft_quotations: int
     sent_quotations: int

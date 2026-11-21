@@ -28,6 +28,7 @@ from app.models.quotation_items import (
     QuotationWindow,
 )
 from app.models.cms_enums import (
+    EnquiryStatus,
     GalleryCategory,
     MediaFolder,
     PortfolioDisplayStatus,
@@ -40,6 +41,7 @@ from app.models.portfolio_project import PortfolioProject
 from app.models.term import Term
 from app.models.uploaded_media import UploadedMedia
 from app.models.user import Role, User
+from app.models.enquiry import WebsiteEnquiry
 from app.models.website_service import WebsiteService
 from app.models.customer_feedback import CustomerFeedback, ReviewSource
 
@@ -75,6 +77,8 @@ __all__ = [
     "PortfolioProjectGallery",
     "GalleryItem",
     "WebsiteService",
+    "WebsiteEnquiry",
+    "EnquiryStatus",
     "MediaFolder",
     "PortfolioProjectType",
     "PortfolioDisplayStatus",

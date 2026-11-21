@@ -48,3 +48,13 @@ class GalleryCategory(StrEnum):
     EXTERIOR = "exterior"
     TEAM = "team"
     OTHER = "other"
+
+
+class EnquiryStatus(StrEnum):
+    """Lifecycle of a public website enquiry (not an ERP customer)."""
+
+    NEW = "NEW"
+    READ = "READ"
+    CONTACTED = "CONTACTED"
+    CLOSED = "CLOSED"
+    SPAM = "SPAM"

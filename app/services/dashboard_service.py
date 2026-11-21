@@ -4,7 +4,9 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
+from app.models.cms_enums import EnquiryStatus
 from app.models.customer import Customer
+from app.models.enquiry import WebsiteEnquiry
 from app.models.enums import QuotationStatus
 from app.models.quotation import Quotation
 from app.schemas.dashboard import CustomerValue, DashboardSummary, StatusCount
@@ -75,7 +77,16 @@ class DashboardService:
         distribution = [
             StatusCount(status=status, count=vals[0], value=vals[1]) for status, vals in status_map.items()
         ]
+        unread_enquiries = (
+            await self.session.execute(
+                select(func.count(WebsiteEnquiry.id)).where(
+                    WebsiteEnquiry.is_read.is_(False),
+                    WebsiteEnquiry.status != EnquiryStatus.SPAM.value,
+                )
+            )
+        ).scalar_one()
         return DashboardSummary(
+            unread_enquiries=int(unread_enquiries),
             total_quotations=total,
             draft_quotations=count_for(QuotationStatus.DRAFT),
             sent_quotations=count_for(QuotationStatus.SENT),

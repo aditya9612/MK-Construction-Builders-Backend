@@ -24,6 +24,7 @@ from app.models.gallery_item import GalleryItem
 from app.models.portfolio_gallery import PortfolioProjectGallery
 from app.models.portfolio_project import PortfolioProject
 from app.models.uploaded_media import UploadedMedia
+from app.models.enquiry import WebsiteEnquiry
 from app.models.website_service import WebsiteService
 from app.repositories.gallery_repository import (
     ALLOWED_GALLERY_SORT_FIELDS,
@@ -67,6 +68,7 @@ def test_c1_mapper_configuration_succeeds_in_isolation():
     assert PortfolioProjectGallery.__mapper__ is not None
     assert GalleryItem.__mapper__ is not None
     assert WebsiteService.__mapper__ is not None
+    assert WebsiteEnquiry.__mapper__ is not None
 
 
 # --- H-1: Commit Rollback & Storage Cleanup ---

@@ -7,6 +7,7 @@ from app.api.routes import (
     dashboard,
     doors_windows,
     electrical,
+    enquiries,
     gallery,
     materials,
     painting,
@@ -46,5 +47,7 @@ for r in portfolio.routers:
 for r in gallery.routers:
     api_router.include_router(r)
 for r in website_services.routers:
+    api_router.include_router(r)
+for r in enquiries.routers:
     api_router.include_router(r)
 
