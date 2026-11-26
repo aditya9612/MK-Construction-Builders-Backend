@@ -9,6 +9,7 @@ from app.api.routes import (
     electrical,
     enquiries,
     gallery,
+    instagram_reels,
     materials,
     painting,
     plumbing,
@@ -49,5 +50,7 @@ for r in gallery.routers:
 for r in website_services.routers:
     api_router.include_router(r)
 for r in enquiries.routers:
+    api_router.include_router(r)
+for r in instagram_reels.routers:
     api_router.include_router(r)
 
